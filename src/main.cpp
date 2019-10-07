@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <math.h>
 #include <uWS/uWS.h>
 #include <iostream>
@@ -161,12 +162,23 @@ int main() {
   });
 
   int port = 4567;
-  if (h.listen(port)) {
-    std::cout << "Listening to port " << port << std::endl;
-  } else {
-    std::cerr << "Failed to listen to port" << std::endl;
-    return -1;
+#ifdef _WIN32
+  if (h.listen("127.0.0.1", port)) {
+	  std::cout << "Listening to port " << port << std::endl;
   }
+  else {
+	  std::cerr << "Failed to listen to port" << std::endl;
+	  return -1;
+  }
+#else
+  if (h.listen(port)) {
+	  std::cout << "Listening to port " << port << std::endl;
+  }
+  else {
+	  std::cerr << "Failed to listen to port" << std::endl;
+	  return -1;
+  }
+#endif
   
   h.run();
 }
