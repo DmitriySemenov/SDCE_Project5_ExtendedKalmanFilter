@@ -4,6 +4,9 @@
 #include "Eigen/Dense"
 
 class KalmanFilter {
+ private:
+	 Eigen::VectorXd h_radar(const Eigen::VectorXd& x);
+
  public:
   /**
    * Constructor
