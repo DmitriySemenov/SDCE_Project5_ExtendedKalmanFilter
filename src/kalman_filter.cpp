@@ -59,14 +59,45 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 	// Calculate z_pred using nonlinear h(x)
 	VectorXd z_pred = h_radar(x_);
 	VectorXd y = z - z_pred;
-	//Jacobian Matrix
+	
+	if (y(1) > M_PI)
+		y(1) -= 2 * M_PI;
+	else if (y(1) < -M_PI)
+		y(1) += 2 * M_PI;
 
+	// Uses Jacobian Matrix here. FusionEKF updates H
+	MatrixXd Ht = H_.transpose();
+	MatrixXd S = H_ * P_ * Ht + R_;
+	MatrixXd Si = S.inverse();
+	MatrixXd PHt = P_ * Ht;
+	MatrixXd K = PHt * Si;
+
+	//new estimate
+	x_ = x_ + (K * y);
+	long x_size = x_.size();
 }
 
 VectorXd KalmanFilter::h_radar(const VectorXd& x) {
 	// Map cartesian positions and velocities to polar range, angle, and range rate
 	VectorXd z_pred = VectorXd(3);
-	z_pred << 1, 1, 1;
+
+	float px = x(0);
+	float py = x(1);
+	float vx = x(2);
+	float vy = x(3);
+	float px_2 = px * px;
+	float py_2 = py * py;
+
+	float ro = sqrt(px_2 + py_2);
+	float theta = atan2(py, px);
+	float ro_dot = 0;
+	if (ro > 0.001) {
+		ro_dot = (px * vx + py * vy) / ro;
+	}
+	
+	z_pred << ro,
+						theta,
+						ro_dot;
 
 	return z_pred;
 }
